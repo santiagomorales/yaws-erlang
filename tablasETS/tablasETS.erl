@@ -1,6 +1,6 @@
 -module(tablasETS).
 %-export([start/0, crearETS/0]).
--export([start/0, procesar/0, procesar_linea/1]).
+-export([start/0, procesar/0, procesar_linea/1, buscar/0]).
 -record(address, {postalcode, placename, state, county, stateab, latitude, longitude}).
 
 procesar() ->
@@ -28,9 +28,18 @@ procesar_linea(Fd_origen) ->
 			procesar_linea(Fd_origen)
 	end.
 
+buscar() ->
+	receive
+		Postalcode ->
+			Info = ets:lookup(tablaETS, Postalcode),
+			io:format("~p~n", [Info]),
+			io:format("PACOOOO\n", []),
+			buscar()
+	end.
  
 start() ->
 	register(procesar, spawn(tablasETS, procesar, [])),
+	register(buscar, spawn(tablasETS, buscar, [])),
 	ets:new(tablaETS, [set, named_table, public, {keypos, #address.postalcode}]),
 	procesar ! {"mini.csv"}.
 
