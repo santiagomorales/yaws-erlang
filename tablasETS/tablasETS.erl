@@ -24,14 +24,13 @@ procesar_linea(Fd_origen) ->
 			{error, Motivo};
 		Linea ->
 			[Postal, Place, State, StateAb, County, Latitude, Longitude, Rest] = string:tokens(Linea, ","),
-			A = #address{postalcode = Postal, placename = Place, state = State, stateab = StateAb, county = County, latitude = Latitude, longitude = Longitude},
-			ets:insert(tablaETS, A),
+			ets:insert(tablaETS, #address{postalcode = Postal, placename = Place, state = State, stateab = StateAb, county = County, latitude = Latitude, longitude = Longitude}),
 			procesar_linea(Fd_origen)
 	end.
 
  
 start() ->
 	register(procesar, spawn(tablasETS, procesar, [])),
-	ets:new(tablaETS, [set, named_table, public]),
+	ets:new(tablaETS, [set, named_table, public, {keypos, #address.postalcode}]),
 	procesar ! {"mini.csv"}.
 
