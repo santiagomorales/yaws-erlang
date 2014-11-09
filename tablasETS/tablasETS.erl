@@ -33,7 +33,6 @@ buscar() ->
 		Postalcode ->
 			Info = ets:lookup(tablaETS, Postalcode),
 			io:format("~p~n", [Info]),
-			io:format("PACOOOO\n", []),
 			buscar()
 	end.
  
