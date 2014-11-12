@@ -23,8 +23,25 @@ procesar_linea(Fd_origen) ->
 		{error, Motivo} ->
 			{error, Motivo};
 		Linea ->
-			[Postal, Place, State, StateAb, County, Latitude, Longitude, Rest] = string:tokens(Linea, ","),
-			ets:insert(tablaETS, #address{postalcode = Postal, placename = Place, state = State, stateab = StateAb, county = County, latitude = Latitude, longitude = Longitude}),
+			% erase the substring ",\n" at the end of the line  
+			Line = re:replace(Linea, [",\n"], "", [global,{return,list}]),
+			io:format("~s\n", [Line]),
+
+			% some lines haven't the field "county", so I have to check if the line has the substring ",," to know 
+			% how do I have to insert the elements in the table (county = "" or county = County)
+
+			case re:run(Line, ",,", [{capture, first, list}]) of
+				{match, [",,"]} ->	% if it hasn't the field county
+					[Postal, Place, State, StateAb, Latitude, Longitude] = string:tokens(Line, ","),
+					ets:insert(tablaETS, #address{postalcode = Postal, placename = Place, state = State, stateab = StateAb, 
+								county = "", latitude = Latitude, longitude = Longitude}),
+					io:format("haz la rula\n", []);
+				_Else ->	% if it has the field county, normal case
+					[Postal, Place, State, StateAb, County, Latitude, Longitude] = string:tokens(Line, ","),
+					io:format("caso normal\n", []),
+					ets:insert(tablaETS, #address{postalcode = Postal, placename = Place, state = State, stateab = StateAb, 
+								county = County, latitude = Latitude, longitude = Longitude})
+			end,
 			procesar_linea(Fd_origen)
 	end.
 
@@ -40,5 +57,6 @@ start() ->
 	register(procesar, spawn(tablasETS, procesar, [])),
 	register(buscar, spawn(tablasETS, buscar, [])),
 	ets:new(tablaETS, [set, named_table, public, {keypos, #address.postalcode}]),
-	procesar ! {"mini.csv"}.
+	procesar ! {"../../us_postal_codes.csv"}.
+	%procesar ! {"mini.csv"}.
 
