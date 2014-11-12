@@ -23,8 +23,8 @@ procesar_linea(Fd_origen) ->
 		{error, Motivo} ->
 			{error, Motivo};
 		Linea ->
-			% erase the substring ",\n" at the end of the line  
-			Line = re:replace(Linea, [",\n"], "", [global,{return,list}]),
+			% erase the substring ",\n" at the end of the line. There's also some lines with 5/6 at the end, that's the reason of the regex. 
+			Line = re:replace(Linea, ",(5|6)?\n", "", [global,{return,list}]),
 			io:format("~s\n", [Line]),
 
 			% some lines haven't the field "county", so I have to check if the line has the substring ",," to know 
